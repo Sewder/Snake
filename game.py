@@ -4,7 +4,7 @@ import random
 class Snake:
     
     def __init__(self) -> None:
-        self.body=[(2,2),(2,3)]
+        self.body=[(1,2),(1,1)]
         self.map=Map(10)
         self.apple = Apple(self)
         
@@ -20,7 +20,7 @@ class Snake:
     def move(self,move:str):
         direction = {'s': (1, 0), 'w': (-1, 0), 'a': (0, -1), 'd': (0, 1)}
         dx,dy=direction[move]
-        
+                
        
         
         nexthead = (self.body[0][0] + dx, self.body[0][1] + dy)
@@ -51,11 +51,11 @@ class Snake:
         
         
 class Apple:
-    
+    apple_types = ['🍎', '🍏', '🍐', '🍊']
     def __init__(self,snake:Snake) -> None:
-        self.apple=None
+        self.apple=(random.randint(1,8),random.randint(1,8))
         self.snake = snake
-        self.score = -1
+        self.score = 0
         
     def draw_apple(self):
         if self.apple:
@@ -70,7 +70,6 @@ class Apple:
         self.apple=random.randint(1,8),random.randint(1,8)
         while self.apple in self.snake.body:
             self.apple=random.randint(1,8),random.randint(1,8)
-        self.draw_apple()
         self.score +=1
 
     def print_score(self):
@@ -97,21 +96,21 @@ class Map:
             print(''.join(row))
 
 snake = Snake()
-a=None
+wrong_direction=None
 while True:
     snake.draw_snake()
     snake.apple.draw_apple()
     snake.map.draw_map()
-    if a:
+    if wrong_direction:
         print('sadece w a s d argümanlrini alir')
         move=input(f'nereye gideceginizi secin    \nayrica skorunuz {snake.apple.print_score()}\n')
-        a=False
+        wrong_direction=False
     else:
         move=input(f'nereye gideceginizi secin    \nayrica skorunuz {snake.apple.print_score()}\n')
     if move=='q':
         break
-    if len(move) !=1:
-        a=True
+    if not move in ['w','a','s','d'] :
+        wrong_direction=True
         continue
         
     if not snake.move(move):
