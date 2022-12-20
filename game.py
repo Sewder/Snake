@@ -4,7 +4,7 @@ import random
 class Snake:
     
     def __init__(self) -> None:
-        self.body=[(1,2),(1,1)]
+        self.body=[[1,2],[1,1]]
         self.map=Map(10)
         self.apple = Apple(self)
         
@@ -23,54 +23,60 @@ class Snake:
                 
        
         
-        nexthead = (self.body[0][0] + dx, self.body[0][1] + dy)
+        nexthead = [self.body[0][0] + dx, self.body[0][1] + dy]
         
         if self.check_collided(nexthead):
             print("game over")
             return False
-        if nexthead==self.apple.apple:
-            self.body.append(self.body[-1])
-       
+        if nexthead in [[x,y] for x,y,_ in self.apple.apple]:
+            if nexthead==self.apple.apple[0][:2]:
+                self.body.append(self.body[-1])
+            else:
+                self.map.map[self.body[-1][0]][self.body[-1][1]] = '⬜'
+                if len(self.body) > 2:
+                    self.map.map[self.body[-2][0]][self.body[-2][1]] = '⬜'
+                    self.body = self.body[:-1]
+                    
         else:
             self.map.map[self.body[-1][0]][self.body[-1][1]] = '⬜'
         for i in range(len(self.body) - 1, 0, -1):
             self.body[i] = self.body[i-1]
         self.body[0]=nexthead    
-        if nexthead==self.apple.apple:
-            self.apple.recreate_apple()
+        if nexthead in [[x,y] for x,y,_ in self.apple.apple]:
+            if nexthead==self.apple.apple[0][:2]:
+                self.apple.recreate_apple('red')
+            else:
+                self.apple.recreate_apple('other')
         return True
     
     def check_collided(self,body_part):
-        if body_part in self.body:
-            return True
-        elif body_part[0] in [0,9] or body_part[1] in [0,9]:
-            return True
-        else:
-            return False
-                
+        return body_part in self.body or body_part[0] in [0, 9] or body_part[1] in [0, 9]
         
         
 class Apple:
-    apple_types = ['🍎', '🍏', '🍐', '🍊']
+    apple_types = ['🍏', '🍐']
     def __init__(self,snake:Snake) -> None:
-        self.apple=(random.randint(1,8),random.randint(1,8))
+        self.apple=[[random.randint(2,5),random.randint(1,8),'🍎'],[random.randint(6,8),random.randint(1,8),random.choice(self.apple_types)]]
         self.snake = snake
         self.score = 0
         
     def draw_apple(self):
-        if self.apple:
-            self.snake.map.map[self.apple[0]][self.apple[1]] = '🍎'
-        else:
-            self.recreate_apple()
+        for apple in self.apple:
+            self.snake.map.map[apple[0]][apple[1]] = apple[2]
             
     
-    def recreate_apple(self):
-        if self.apple:
-            self.snake.map.map[self.apple[0]][self.apple[1]] = '⬜'
-        self.apple=random.randint(1,8),random.randint(1,8)
-        while self.apple in self.snake.body:
-            self.apple=random.randint(1,8),random.randint(1,8)
-        self.score +=1
+    def recreate_apple(self,red):
+        if red=='red':
+            self.snake.map.map[self.apple[0][0]][self.apple[0][1]] = '⬜'
+            self.apple[0]=[random.randint(1,8),random.randint(1,8),'🍎']
+            while self.apple[0][:2] in self.snake.body or self.apple[0][:2] == self.apple[1][:2]:
+                self.apple[0] = [random.randint(1, 8), random.randint(1, 8), '🍎']
+            self.score +=1
+        else:
+            self.snake.map.map[self.apple[0][0]][self.apple[0][1]] = '⬜'
+            self.apple[1] = [random.randint(1, 8), random.randint(1, 8), random.choice(self.apple_types)]
+            while (self.apple[1][:2] in self.snake.body) or (self.apple[1][:2] == self.apple[0][:2]):
+                self.apple[1] = [random.randint(1, 8), random.randint(1, 8), random.choice(self.apple_types)]
 
     def print_score(self):
         return self.score
@@ -92,8 +98,8 @@ class Map:
             self.map.append(row)
         
     def draw_map(self):
-        for row in self.map:
-            print(''.join(row))
+        rows = [''.join(row) for row in self.map]
+        print('\n'.join(rows))
 
 snake = Snake()
 wrong_direction=None
